@@ -1,101 +1,106 @@
-import gradio as gr
+import streamlit as st
 
 from src.predict import predict_text
 
 
-def analyze_content(text):
+# Page configuration
+st.set_page_config(
+    page_title="AI Hate Speech Moderation",
+    page_icon="🛡️",
+    layout="centered"
+)
 
-    if not text or not text.strip():
-        return (
-            "Please enter some text.",
-            "-",
-            "-",
-            "Enter a social media post or comment first."
+
+# Title
+st.title("🛡️ AI Hate Speech Detection")
+st.subheader("Social Media Content Moderation using RoBERTa")
+
+st.write(
+    """
+    Enter a social media post or comment below.
+
+    The RoBERTa model classifies the content as:
+
+    **Hate Speech • Offensive Language • Neither**
+    """
+)
+
+
+# User input
+text = st.text_area(
+    "Social Media Content",
+    placeholder="Type a social media post or comment here...",
+    height=150
+)
+
+
+# Analyze button
+if st.button("Analyze Content", type="primary"):
+
+    if not text.strip():
+
+        st.warning("Please enter some text first.")
+
+    else:
+
+        with st.spinner("Analyzing content..."):
+
+            result = predict_text(text)
+
+        label = result["label"]
+        confidence = result["confidence"] * 100
+        action = result["action"]
+        message = result["message"]
+
+        st.divider()
+
+        st.subheader("Analysis Result")
+
+        st.write("### Prediction")
+        st.write(label)
+
+        st.write("### Confidence")
+        st.write(f"{confidence:.2f}%")
+
+        st.progress(
+            min(
+                int(confidence),
+                100
+            )
         )
 
-    result = predict_text(text)
+        st.write("### Moderation Action")
 
-    label = result["label"]
-    confidence = f"{result['confidence'] * 100:.2f}%"
-    action = result["action"]
-    message = result["message"]
+        if action == "BLOCK":
+            st.error("🚫 BLOCK")
 
-    return label, confidence, action, message
+        elif action == "WARN":
+            st.warning("⚠️ WARN")
 
+        elif action == "REVIEW":
+            st.info("👤 REVIEW")
 
-with gr.Blocks(title="AI Hate Speech Moderation") as app:
+        else:
+            st.success("✅ ALLOW")
 
-    gr.Markdown(
-        """
-        # 🛡️ AI Hate Speech Detection & Content Moderation
-
-        Enter a social-media post or comment below.
-
-        The system uses a fine-tuned **RoBERTa model** to classify the content as:
-
-        **Hate Speech · Offensive Language · Neither**
-
-        It then recommends a moderation action.
-        """
-    )
-
-    text_input = gr.Textbox(
-        label="Social Media Content",
-        placeholder="Type a comment or post here...",
-        lines=5
-    )
-
-    analyze_button = gr.Button(
-        "Analyze Content",
-        variant="primary"
-    )
-
-    gr.Markdown("## Analysis Result")
-
-    prediction_output = gr.Textbox(
-        label="Prediction",
-        interactive=False
-    )
-
-    confidence_output = gr.Textbox(
-        label="Confidence",
-        interactive=False
-    )
-
-    action_output = gr.Textbox(
-        label="Moderation Action",
-        interactive=False
-    )
-
-    message_output = gr.Textbox(
-        label="Moderation Message",
-        interactive=False
-    )
-
-    analyze_button.click(
-        fn=analyze_content,
-        inputs=text_input,
-        outputs=[
-            prediction_output,
-            confidence_output,
-            action_output,
-            message_output
-        ]
-    )
-
-    gr.Markdown(
-        """
-        ### Moderation Policy
-
-        - **BLOCK** → High-confidence hate speech
-        - **WARN** → High-confidence offensive language
-        - **REVIEW** → Uncertain or potentially harmful content
-        - **ALLOW** → No harmful content detected
-
-        **Note:** AI predictions can be incorrect. Important moderation decisions should include human review.
-        """
-    )
+        st.write("### Moderation Message")
+        st.write(message)
 
 
-if __name__ == "__main__":
-    app.launch()
+st.divider()
+
+st.subheader("Moderation Policy")
+
+st.markdown(
+    """
+    - **BLOCK** — High-confidence hate speech
+    - **WARN** — High-confidence offensive language
+    - **REVIEW** — Uncertain or potentially harmful content
+    - **ALLOW** — Content considered safe with high confidence
+    """
+)
+
+st.caption(
+    "AI predictions can be incorrect. Important moderation decisions "
+    "should include human review."
+)

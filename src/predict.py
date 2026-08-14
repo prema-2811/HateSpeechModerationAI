@@ -20,7 +20,7 @@ from src.moderation_agent import moderation_decision
 
 
 # Final selected model
-MODEL_PATH = "models/roberta"
+MODEL_PATH = "prema-2811/hatespeech-roberta"
 
 device = torch.device("cpu")
 

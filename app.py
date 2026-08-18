@@ -689,7 +689,7 @@ st.image(
 # ==================================================
 
 st.markdown(
-    "### 🛡️ Hate Speech & Offensive Language Detection using RoBERTa"
+    "### 🛡️ Hate Speech & Offensive Language Detection using DistilRoBERTa"
 )
 
 
@@ -785,7 +785,7 @@ with single_tab:
         else:
 
             with st.spinner(
-                "RoBERTa is analyzing "
+                "DistilRoBERTa is analyzing "
                 "the content..."
             ):
 
